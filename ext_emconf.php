@@ -55,5 +55,7 @@ $EM_CONF[$_EXTKEY] = array (
   'user' => 'dmitry',
   'comment' => 'TYPO3 6.2. compatibility update',
 );
+	// Let's make sure we're able to distinguish our version from the original
+$EM_CONF[$_EXTKEY]['version'] .= '.AOE';
 
 ?>
