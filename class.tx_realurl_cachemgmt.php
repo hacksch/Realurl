@@ -240,9 +240,9 @@ class tx_realurl_cachemgmt {
 	function _readCacheForPath($pagePath, $ignoreUid = null) {
 		
 		if (is_numeric($ignoreUid)) {
-			$where = 'path="' . $this->dbObj->fullQuoteStr($pagePath, 'tx_realurl_cache') . '" AND pageid != "' . intval($ignoreUid) . '" ';
+			$where = 'path=' . $this->dbObj->fullQuoteStr($pagePath, 'tx_realurl_cache') . ' AND pageid != "' . intval($ignoreUid) . '" ';
 		} else {
-			$where = 'path="' . $this->dbObj->fullQuoteStr($pagePath, 'tx_realurl_cache') . '" ';
+			$where = 'path=' . $this->dbObj->fullQuoteStr($pagePath, 'tx_realurl_cache') . ' ';
 		}
 		$where .= $this->_getAddCacheWhere(TRUE);
 		if (method_exists($this->dbObj, 'exec_SELECTquery_master')) {
