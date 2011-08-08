@@ -240,9 +240,9 @@ class tx_realurl_cachemgmt {
 	function _readCacheForPath($pagePath, $ignoreUid = null) {
 		
 		if (is_numeric($ignoreUid)) {
-			$where = 'path="' . $pagePath . '" AND pageid != "' . intval($ignoreUid) . '" ';
+			$where = 'path="' . $this->dbObj->fullQuoteStr($pagePath, 'tx_realurl_cache') . '" AND pageid != "' . intval($ignoreUid) . '" ';
 		} else {
-			$where = 'path="' . $pagePath . '" ';
+			$where = 'path="' . $this->dbObj->fullQuoteStr($pagePath, 'tx_realurl_cache') . '" ';
 		}
 		$where .= $this->_getAddCacheWhere(TRUE);
 		if (method_exists($this->dbObj, 'exec_SELECTquery_master')) {
@@ -267,7 +267,7 @@ class tx_realurl_cachemgmt {
 	 * @return string unique path in cache
 	 **/
 	function _readHistoryCacheForPath($pagePath) {
-		$where = "path=\"" . $pagePath . '"' . $this->_getAddCacheWhere(TRUE);
+		$where = "path=\"" . $this->dbObj->fullQuoteStr($pagePath, 'tx_realurl_cachehistory') . '"' . $this->_getAddCacheWhere(TRUE);
 		$res = $this->dbObj->exec_SELECTquery("*", "tx_realurl_cachehistory", $where);
 		if ($res)
 			$result = $this->dbObj->sql_fetch_assoc($res);
