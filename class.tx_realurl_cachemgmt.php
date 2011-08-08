@@ -224,7 +224,7 @@ class tx_realurl_cachemgmt {
 			if ($this->dbObj->exec_INSERTquery("tx_realurl_cache", $data)) {
 				//TODO ... yeah we saved something in the database - any further problems?
 			} else {
-				//TODO ... d'oh database didn't like use - what's next?
+				//TODO ... d'oh database didn't like us - what's next?
 			}
 		}
 		$this->dbObj->sql_query('COMMIT');
