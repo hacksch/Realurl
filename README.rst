@@ -15,6 +15,7 @@ Upgrading from aoe_realurlpath
 - Change the pagepath renderer script to:
 
 ::
+
 	'userFunc' => 'EXT:realurl/class.tx_realurl_pagepath.php:&tx_realurl_pagepath->main'
 
 - Remove the tx_aoerealurlpath_overridesegment from the 'segTitleFieldList' setting
