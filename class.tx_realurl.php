@@ -303,11 +303,14 @@ class tx_realurl {
 
 		// Reapply config.absRefPrefix if necessary
 		if ((!isset($this->extConf['init']['reapplyAbsRefPrefix']) || $this->extConf['init']['reapplyAbsRefPrefix']) && $GLOBALS['TSFE']->absRefPrefix) {
-			// Prevent // in case of absRefPrefix ending with / and emptyUrlReturnValue=/
-			if (substr($GLOBALS['TSFE']->absRefPrefix, -1, 1) == '/' && substr($newUrl, 0, 1) == '/') {
-				$newUrl = substr($newUrl, 1);
+			if(filter_var($newUrl, FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED) === FALSE) {
+				// only if no absolute url is linked
+				// Prevent // in case of absRefPrefix ending with / and emptyUrlReturnValue=/
+				if (substr($GLOBALS['TSFE']->absRefPrefix, -1, 1) == '/' && substr($newUrl, 0, 1) == '/') {
+					$newUrl = substr($newUrl, 1);
+				}
+				$newUrl = $GLOBALS['TSFE']->absRefPrefix . $newUrl;
 			}
-			$newUrl = $GLOBALS['TSFE']->absRefPrefix . $newUrl;
 		}
 
 		// Set prepending of URL (e.g. hostname) which will be processed by typoLink_PostProc hook in tslib_content
