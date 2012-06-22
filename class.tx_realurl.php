@@ -1237,11 +1237,11 @@ class tx_realurl {
 
 
 		// Fixed Post-vars:
-		$fixedPostVarSetCfg = $this->getPostVarSetConfig($cachedInfo['id'] ?: $cachedInfo['rootpage_id'], 'fixedPostVars');
+		$fixedPostVarSetCfg = $this->getPostVarSetConfig($cachedInfo['id'] ? $cachedInfo['id'] : $cachedInfo['rootpage_id'], 'fixedPostVars');
 		$fixedPost_GET_VARS = $this->decodeSpURL_settingPreVars($pathParts, $fixedPostVarSetCfg);
 
 		// Setting "postVarSets"
-		$postVarSetCfg = $this->getPostVarSetConfig($cachedInfo['id'] ?: $cachedInfo['rootpage_id']);
+		$postVarSetCfg = $this->getPostVarSetConfig($cachedInfo['id'] ? $cachedInfo['id'] : $cachedInfo['rootpage_id']);
 		$post_GET_VARS = $this->decodeSpURL_settingPostVarSets($pathParts, $postVarSetCfg, $cachedInfo['id']);
 
 		// Looking for remaining parts
