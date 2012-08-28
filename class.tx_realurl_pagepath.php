@@ -44,8 +44,12 @@ include_once (t3lib_extMgm::extPath ( 'realurl' ) . 'class.tx_realurl_cachemgmt.
 class tx_realurl_pagepath {
 	var $generator; //help object for generating paths
 	var $insert = false;
-	var $pObj;
 	var $conf;
+
+	/**
+	 * @var $pObj tx_realurl
+	 */
+	protected $pObj;
 
 	/**
 	 * @var tx_realurl_cachemgmt
@@ -105,7 +109,7 @@ class tx_realurl_pagepath {
 			//clear this page cache:
 			$this->cachemgmt->markAsDirtyCompletePid($pageId );
 		}
-		
+
 		$buildedPath = $this->cachemgmt->isInCache($pageId);
 
 		if (!$buildedPath) {
@@ -126,12 +130,16 @@ class tx_realurl_pagepath {
 
 	/**
 	 * Gets the pageid from a pagepath, needs to check the cache
-	 * 
+	 *
 	 * @param	array		Array of segments from virtual path
 	 * @return	integer		Page ID
 	 */
 	protected function _alias2id(&$pagePath) {
 		$pagePathOrigin = $pagePath;
+			// Page path is urlencoded in cache tables, so make sure path segments are encoded the same way, otherwise cache will miss
+		if ($this->pObj->extConf['init']['enableAllUnicodeLetters']) {
+			array_walk($pagePathOrigin, create_function('&$pathSegment', '$pathSegment = mb_detect_encoding($pathSegment, "ASCII", TRUE) ? $pathSegment : rawurlencode($pathSegment);'));
+		}
 		$this->pObj->appendFilePart($pagePathOrigin);
 		$keepPath = array ();
 			//Check for redirect
@@ -326,7 +334,7 @@ class tx_realurl_pagepath {
 	function _isCrawlerRun() {
 		if (
 			t3lib_extMgm::isLoaded('crawler')
-			&& $GLOBALS['TSFE']->applicationData['tx_crawler']['running'] 
+			&& $GLOBALS['TSFE']->applicationData['tx_crawler']['running']
 			&& (
 				in_array('tx_cachemgm_recache', $GLOBALS['TSFE']->applicationData['tx_crawler']['parameters']['procInstructions'])
 				|| in_array('tx_realurl_rebuild', $GLOBALS['TSFE']->applicationData['tx_crawler']['parameters']['procInstructions'])
@@ -381,4 +389,3 @@ class tx_realurl_pagepath {
 		$this->cachemgmt->setRootPid ( $this->_getRootPid () );
 	}
 }
-?>
