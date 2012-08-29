@@ -42,18 +42,24 @@ include_once (t3lib_extMgm::extPath ( 'realurl' ) . 'class.tx_realurl_cachemgmt.
  * @todo	check last updatetime of pages
  */
 class tx_realurl_pagepath {
-	var $generator; //help object for generating paths
-	var $insert = false;
-	var $conf;
+		/**
+		 * @var array $conf
+		 */
+	protected $conf;
 
-	/**
-	 * @var $pObj tx_realurl
-	 */
+		/**
+		 * @var tx_realurl_pathgenerator $generator
+		 */
+	protected $generator;
+
+		/**
+	 	* @var tx_realurl $pObj
+	 	*/
 	protected $pObj;
 
-	/**
-	 * @var tx_realurl_cachemgmt
-	 */
+		/**
+	 	* @var tx_realurl_cachemgmt $cachemgmt
+	 	*/
 	protected $cachemgmt;
 
 	/** Main function -> is called from real_url
@@ -372,9 +378,10 @@ class tx_realurl_pagepath {
 	 *
 	 */
 	function initGenerator() {
-		$this->generator = t3lib_div::makeInstance ( 'tx_realurl_pathgenerator' );
-		$this->generator->init ( $this->conf );
-		$this->generator->setRootPid ( $this->_getRootPid () );
+		$this->generator = t3lib_div::makeInstance('tx_realurl_pathgenerator');
+		$this->generator->init($this->conf);
+		$this->generator->setRootPid ($this->_getRootPid());
+		$this->generator->setParentObject($this->pObj);
 	}
 
 	/**

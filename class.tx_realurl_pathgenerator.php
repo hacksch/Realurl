@@ -27,7 +27,7 @@
 
 /**
  *
- * @author  Daniel P�tzinger
+ * @author  Daniel Pötzinger
  * @author  Tolleiv Nietsch
  * @package realurl
  * @subpackage realurl
@@ -36,16 +36,25 @@
  */
 class tx_realurl_pathgenerator {
 	var $pidForCache;
-	var $conf; //conf from reaulurl configuration (segTitleFieldList...)
 	var $extconfArr; //ext_conf_template vars
 	var $doktypeCache = array ();
 
-	/**
-	 *
-	 * @param array $conf
-	 * @return void
-	 */
-	function init($conf) {
+		/**
+		 * @var array $conf ReaulUrl configuration (segTitleFieldList, ...)
+		 */
+	protected $conf;
+
+		/**
+		 * @var tx_realurl $pObj
+		 */
+	protected $pObj;
+
+		/**
+		 *
+		 * @param array $conf
+		 * @return void
+		 */
+	function init(array $conf) {
 		$this->conf = $conf;
 		$this->extconfArr = unserialize ( $GLOBALS ['TYPO3_CONF_VARS'] ['EXT'] ['extConf'] ['realurl'] );
 	}
@@ -64,7 +73,6 @@ class tx_realurl_pathgenerator {
 			}
 			$pid = $shortCutPid;
 		}
-
 		$this->pidForCache = $pid;
 		$rootline = $this->_getRootline ( $pid, $langid, $workspace );
 		$firstPage = $rootline [0];
@@ -237,6 +245,14 @@ class tx_realurl_pathgenerator {
 		$this->rootPid = $id;
 	}
 
+		/**
+		 * @param tx_realurl $pObj
+		 * @return void
+		 */
+	public function setParentObject(tx_realurl $pObj) {
+		$this->pObj = $pObj;
+	}
+
 	/**
 	 *
 	 * @param int $pid	Pageid of the page where the rootline should be retrieved
@@ -335,7 +351,6 @@ class tx_realurl_pathgenerator {
 			if ($this->encodeTitle ( $pageRec [$segmentName] ) != '') {
 				$retVal = $this->encodeTitle ( $pageRec [$segmentName] );
 				break;
-				//$value['uid']
 			}
 		}
 		return $retVal;
@@ -429,8 +444,14 @@ class tx_realurl_pathgenerator {
 		$processedTitle = preg_replace ( '/[\s+]+/', $space, $processedTitle ); // convert spaces
 			// Convert extended letters to ascii equivalents:
 		$processedTitle = $GLOBALS ['TSFE']->csConvObj->specCharsToASCII ( $charset, $processedTitle );
-			// Strip the rest...:
-		$processedTitle = preg_replace ( '/[^a-zA-Z0-9\\_\\' . $space . ']/', $space, $processedTitle );
+			// Strip the rest
+		if ($this->pObj->extConf['init']['enableAllUnicodeLetters']) {
+				// Warning: slow!!!
+			$processedTitle = preg_replace('/[^\p{L}0-9' . ($space ? preg_quote($space) : '') . ']/u', '', $processedTitle);
+		}
+		else {
+			$processedTitle = preg_replace('/[^a-zA-Z0-9' . ($space ? preg_quote($space) : '') . ']/', '', $processedTitle);
+		}
 		$processedTitle = preg_replace ( '/\\' . $space . '+/', $space, $processedTitle );
 		$processedTitle = trim ( $processedTitle, $space );
 		if ($this->conf ['encodeTitle_userProc']) {
