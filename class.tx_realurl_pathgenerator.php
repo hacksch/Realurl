@@ -321,13 +321,12 @@ class tx_realurl_pathgenerator {
 			if ($value ['tx_realurl_exclude'] && $i != $size) {
 			} else {  //the normal way
 
-				$pathSeg = $this->_getPathSeg ( $value, $segment );
-				if (strcmp ( $pathSeg, '' ) === 0) {
-					if ((strcmp ( $pathSeg, '' ) === 0) && $value ['_PAGES_OVERLAY']) {
-						$pathSeg = $this->_getPathSeg ( $this->_getDefaultRecord ( $value ), $segment );
-					}
-					if (strcmp ( $pathSeg, '' ) === 0) {
-						$pathSeg = 'page_' . $value ['uid'];
+				$pathSeg = $this->_getPathSeg($value, $segment);
+				if (strcmp($pathSeg, '') === 0) {
+					if ($value['_PAGES_OVERLAY']) {
+						$pathSeg = $this->_getPathSeg($this->_getDefaultRecord($value), $segment);
+					} else {
+						$pathSeg = 'page_' . $value['uid'];
 					}
 				}
 				$path [] = $pathSeg;
