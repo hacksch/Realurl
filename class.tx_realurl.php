@@ -1703,6 +1703,10 @@ class tx_realurl {
 							// Map value if applicable:
 							if (isset($setup['valueMap'][$value])) {
 								$value = $setup['valueMap'][$value];
+							} elseif ($setup['noMatch'] === 'bypassAndApplyDefault' && isset($setup['valueDefault'])) {
+								// If no match and "bypassAndApplyDefault" is set, then return the value to $pathParts but set the default value if valueDefault is set
+								array_unshift($pathParts, $origValue);
+								$value = $setup['valueMap'][$setup['valueDefault']];
 							} elseif ($setup['noMatch'] == 'bypass') {
 								// If no match and "bypass" is set, then return the value to $pathParts and break
 								array_unshift($pathParts, $origValue);
