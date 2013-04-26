@@ -1273,6 +1273,8 @@ class tx_realurl {
 			} else {
 				/** @noinspection PhpUndefinedMethodInspection PhpDeprecationInspection */
 				$containsRelevantParametersForCHashCreation = count(t3lib_div::cHashParams($queryString)) > 0;
+			}elseif(!empty($cachedInfo['GET_VARS'])) {
+				$cachedInfo['GET_VARS']['cHash'] = t3lib_div::generateCHash($cachedInfo['GET_VARS']);
 			}
 
 			if ($containsRelevantParametersForCHashCreation) {
@@ -1282,7 +1284,6 @@ class tx_realurl {
 				}
 			}
 		}
-
 		// Return information found
 		return $cachedInfo;
 	}
