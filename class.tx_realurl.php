@@ -1271,9 +1271,10 @@ class tx_realurl {
 			$cHash_value = $this->decodeSpURL_cHashCache($speakingURIpath);
 			if ($cHash_value) {
 				$cachedInfo['GET_VARS']['cHash'] = $cHash_value;
+			}elseif(!empty($cachedInfo['GET_VARS'])) {
+				$cachedInfo['GET_VARS']['cHash'] = t3lib_div::generateCHash($cachedInfo['GET_VARS']);
 			}
 		}
-
 		// Return information found:
 		return $cachedInfo;
 	}
