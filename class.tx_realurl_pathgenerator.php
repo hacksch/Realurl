@@ -446,10 +446,10 @@ class tx_realurl_pathgenerator {
 			// Strip the rest
 		if ($this->pObj->extConf['init']['enableAllUnicodeLetters']) {
 				// Warning: slow!!!
-			$processedTitle = preg_replace('/[^\p{L}0-9' . ($space ? preg_quote($space) : '') . ']/u', '', $processedTitle);
+			$processedTitle = preg_replace('/[^\p{L}0-9' . ($space ? preg_quote($space) : '') . ']/u', $space, $processedTitle);
 		}
 		else {
-			$processedTitle = preg_replace('/[^a-zA-Z0-9' . ($space ? preg_quote($space) : '') . ']/', '', $processedTitle);
+			$processedTitle = preg_replace('/[^a-zA-Z0-9' . ($space ? preg_quote($space) : '') . ']/', $space, $processedTitle);
 		}
 		$processedTitle = preg_replace ( '/\\' . $space . '+/', $space, $processedTitle );
 		$processedTitle = trim ( $processedTitle, $space );
