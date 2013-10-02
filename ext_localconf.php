@@ -11,8 +11,26 @@ $TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['clearAllCache_a
 $TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass']['tx_realurl'] = 'EXT:realurl/class.tx_realurl_tcemain.php:&tx_realurl_tcemain';
 $TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processCmdmapClass']['tx_realurl'] = 'EXT:realurl/class.tx_realurl_tcemain.php:&tx_realurl_tcemain';
 
+	// Hook to add the excludemiddle field into the list of fields for new localization records
+$TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamap_preProcessFieldArray']['tx_realurl'] = 'tx_realurl_processdatamap';
+
+	// Hook to force regeneration if crawler is active
+if (TYPO3_MODE  === 'FE') {
+	$TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_fe.php']['insertPageIncache']['tx_realurl'] = 'Tx_Realurl_Crawler';
+	$TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_fe.php']['headerNoCache']['tx_realurl'] = 'Tx_Realurl_Crawler->headerNoCache';
+}
+
 $TYPO3_CONF_VARS['FE']['addRootLineFields'] .= ',tx_realurl_pathsegment,tx_realurl_exclude,tx_realurl_pathoverride';
-$TYPO3_CONF_VARS['FE']['pageOverlayFields'] .= ',tx_realurl_pathsegment';
+
+	// Add page overlay fields only if configured
+if ($_realurl_conf['addpageOverlayFields'] !== 0) {
+	$TYPO3_CONF_VARS['FE']['pageOverlayFields'] .= ',tx_realurl_pathsegment,tx_realurl_exclude,tx_realurl_pathoverride';
+}
+
+	// Register processing instruction on tx_crawler
+if (TYPO3_MODE  === 'BE') {
+	$TYPO3_CONF_VARS['EXTCONF']['crawler']['procInstructions']['tx_realurl_rebuild'] = 'Force page link regeneration';
+}
 
 // Include configuration file
 $_realurl_conf = @unserialize($_EXTCONF);

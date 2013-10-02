@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+	<meta type="array">
+		<description>Info module labels</description>
+		<type>backend</type>
+	</meta>
+	<data type="array">
+		<languageKey index="default" type="array">
+			<label index="backendInfoModule.name">RealURL management</label>
+			<label index="backendInfoModule.title">Title</label>
+			<label index="backendInfoModule.actions">Actions:</label>
+			<label index="backendInfoModule.clearAll">Clear all (complete cache and history)</label>
+			<label index="backendInfoModule.clearVisibleTree">Clear visible tree</label>
+			<label index="backendInfoModule.markVisibleTreeAsDirty">Mark visible tree as dirty</label>
+			<label index="backendInfoModule.clearCompleteHistoryCache">Clear complete history cache</label>
+			<label index="backendInfoModule.regeneratePaths">Regenerate paths (FE calls)</label>
+			<label index="backendInfoModule.colors">Colors:</label>
+			<label index="backendInfoModule.cacheFound">Cache found</label>
+			<label index="backendInfoModule.cacheExpired">Cache expired</label>
+			<label index="backendInfoModule.cacheShortcut">Shortcut (no cache needed)</label>
+			<label index="backendInfoModule.cacheDelegation">Delegation (no cache needed)</label>
+			<label index="backendInfoModule.cacheNotFound">No cache found</label>
+			<label index="backendInfoModule.pathCacheForWorkspace">RealURL path cache for workspace:</label>
+			<label index="backendInfoModule.editPage">Edit page</label>
+			<label index="backendInfoModule.viewPage">View page</label>
+		</languageKey>
+	</data>
+</T3locallang>

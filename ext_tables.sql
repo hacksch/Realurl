@@ -29,12 +29,13 @@ CREATE TABLE tx_realurl_uniqalias (
 	value_id int(11) DEFAULT '0' NOT NULL,
 	lang int(11) DEFAULT '0' NOT NULL,
 	expire int(11) DEFAULT '0' NOT NULL,
+	rootpage_id int(11) DEFAULT '0' NOT NULL,
 
 	PRIMARY KEY (uid),
 	KEY tablename (tablename),
-	KEY bk_realurl01 (field_alias(20),field_id,value_id,lang,expire),
-	KEY bk_realurl02 (tablename(32),field_alias(20),field_id,value_alias(20),expire)
-);
+	KEY bk_realurl01 (rootpage_id, field_alias(20),field_id,value_id,lang,expire),
+	KEY bk_realurl02 (rootpage_id, tablename(32),field_alias(20),field_id,value_alias(20),expire)
+) ENGINE=InnoDB;
 
 #
 # Table structure for table 'tx_realurl_chashcache'
@@ -80,6 +81,9 @@ CREATE TABLE tx_realurl_urlencodecache (
 	KEY page_id (page_id)
 ) ENGINE=InnoDB;
 
+#
+# Table structure for table 'tx_realurl_errorlog'
+#
 CREATE TABLE tx_realurl_errorlog (
 	url_hash int(11) DEFAULT '0' NOT NULL,
 	url text NOT NULL,
@@ -92,8 +96,11 @@ CREATE TABLE tx_realurl_errorlog (
 
 	PRIMARY KEY (url_hash,rootpage_id),
 	KEY counter (counter,tstamp)
-);
+) ENGINE=InnoDB;
 
+#
+# Table structure for table 'tx_realurl_redirects'
+#
 CREATE TABLE tx_realurl_redirects (
 	uid int(11) NOT NULL auto_increment,
 	url_hash int(11) DEFAULT '0' NOT NULL,
@@ -107,10 +114,10 @@ CREATE TABLE tx_realurl_redirects (
 
 	PRIMARY KEY (uid),
 	UNIQUE KEY sel01 (url_hash,domain_limit)
-);
+) ENGINE=InnoDB;
 
 #
-# Modifying pages table
+# Additional fields for table 'pages'
 #
 CREATE TABLE pages (
 	tx_realurl_pathsegment varchar(255) DEFAULT '' NOT NULL,
@@ -120,22 +127,62 @@ CREATE TABLE pages (
 );
 
 #
-# Modifying pages_language_overlay table
+# Additional fields for table 'pages_language_overlay'
 #
 CREATE TABLE pages_language_overlay (
 	tx_realurl_pathsegment varchar(255) DEFAULT '' NOT NULL
+	tx_realurl_pathoverride int(1) DEFAULT '0' NOT NULL,
+	tx_realurl_exclude int(1) DEFAULT '0' NOT NULL
 );
 
 #
-# Modifying sys_domain table
+# Additional fields for table 'sys_domain'
 #
 CREATE TABLE sys_domain (
 	KEY tx_realurl (domainName,hidden)
 );
 
 #
-# Modifying sys_template table
+# Additional fields for table 'sys_template'
 #
 CREATE TABLE sys_template (
 	KEY tx_realurl (root,hidden)
 );
+
+#
+# Table structure for table 'tx_realurl_cache'
+#
+CREATE TABLE tx_realurl_cache (
+	tstamp int(11) DEFAULT '0' NOT NULL,
+	mpvar tinytext NOT NULL,
+	workspace int(11) DEFAULT '0' NOT NULL,
+	rootpid int(11) DEFAULT '0' NOT NULL,
+	languageid int(11) DEFAULT '0' NOT NULL,
+	pageid int(11) DEFAULT '0' NOT NULL,
+	path text NOT NULL,
+	dirty tinyint(3) DEFAULT '0' NOT NULL
+
+	PRIMARY KEY (pageid,workspace,rootpid,languageid),
+	KEY path_k (path(100)),
+	KEY path_branch_k (rootpid,path(100)),
+	KEY ws_lang_k (workspace,languageid)
+) ENGINE=InnoDB;
+
+#
+# Table structure for table 'tx_realurl_cachehistory'
+#
+CREATE TABLE tx_realurl_cachehistory (
+	uid int(11) NOT NULL auto_increment,
+	tstamp int(11) DEFAULT '0' NOT NULL,
+	mpvar tinytext NOT NULL,
+	workspace int(11) DEFAULT '0' NOT NULL,
+	rootpid int(11) DEFAULT '0' NOT NULL,
+	languageid int(11) DEFAULT '0' NOT NULL,
+	pageid int(11) DEFAULT '0' NOT NULL,
+	path text NOT NULL,
+
+	PRIMARY KEY (uid),
+	KEY path_k (path(100)),
+	KEY path_branch_k (rootpid,path(100)),
+	KEY ws_lang_k (workspace,languageid)
+) ENGINE=InnoDB;

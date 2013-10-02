@@ -5,11 +5,11 @@ if (TYPO3_MODE=='BE')	{
 //	t3lib_extMgm::addModule('tools','txrealurlM1','',t3lib_extMgm::extPath($_EXTKEY).'mod1/');
 
 	// Add Web>Info module:
-	t3lib_extMgm::insertModuleFunction(
+	\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::insertModuleFunction(
 		'web_info',
-		'tx_realurl_modfunc1',
-		t3lib_extMgm::extPath($_EXTKEY) . 'modfunc1/class.tx_realurl_modfunc1.php',
-		'LLL:EXT:realurl/locallang_db.xml:moduleFunction.tx_realurl_modfunc1',
+		'Tx_Realurl_Module_BackendInfoModule',
+		\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath($_EXTKEY) . 'Classes/Module/BackendInfoModule.php',
+		'LLL:EXT:realurl/Resources/Private/Language/Module/locallang.xml:backendInfoModule.name',
 		'function',
 		'online'
 	);
@@ -21,7 +21,6 @@ if (version_compare(TYPO3_branch, '6.1', '<')) {
 $TCA['pages']['columns'] += array(
 	'tx_realurl_pathsegment' => array(
 		'label' => 'LLL:EXT:realurl/locallang_db.xml:pages.tx_realurl_pathsegment',
-		'displayCond' => 'FIELD:tx_realurl_exclude:!=:1',
 		'exclude' => 1,
 		'config' => array (
 			'type' => 'input',
@@ -93,8 +92,28 @@ $TCA['pages_language_overlay']['columns'] += array(
 			'eval' => 'trim,nospace,lower'
 		),
 	),
+	'tx_realurl_pathoverride' => array(
+		'label' => 'LLL:EXT:realurl/locallang_db.xml:pages.tx_realurl_path_override',
+		'exclude' => 1,
+		'config' => array (
+			'type' => 'check',
+			'items' => array(
+				array('', '')
+			)
+		)
+	),
+	'tx_realurl_exclude' => array(
+		'label' => 'LLL:EXT:realurl/locallang_db.xml:pages.tx_realurl_exclude',
+		'exclude' => 1,
+		'config' => array (
+			'type' => 'check',
+			'items' => array(
+				array('', '')
+			)
+		)
+	),
 );
 
-t3lib_extMgm::addToAllTCAtypes('pages_language_overlay', 'tx_realurl_pathsegment', '', 'after:nav_title');
+t3lib_extMgm::addToAllTCAtypes('pages_language_overlay', 'tx_realurl_pathsegment,tx_realurl_pathoverride,tx_realurl_exclude', '', 'after:nav_title');
 
 ?>
