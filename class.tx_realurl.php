@@ -224,6 +224,17 @@ class tx_realurl {
 	 */
 	protected $rebuildCHash;
 
+	/**
+	 * The default value that is used to replace empty values
+	 * in path segments (encoded postVars)
+	 */
+	protected $emptyReplacerDefaultValue = '-';
+
+	/**
+	 * @var Tx_Realurl_ConfigurationService
+	 */
+	protected $configurationService;
+
 	/************************************
 	 *
 	 * Translate parameters to a Speaking URL (t3lib_tstemplate::linkData)
@@ -244,6 +255,7 @@ class tx_realurl {
 		$sysconf = (array)unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['realurl']);
 		$this->enableStrictMode = (boolean)$sysconf['enableStrictMode'];
 		$this->enableChashUrlDebug = (boolean)$sysconf['enableChashUrlDebug'];
+		$this->configurationService = t3lib_div::makeInstance('Tx_Realurl_ConfigurationService');
 
 		$this->initDevLog($sysconf);
 	}
@@ -299,10 +311,17 @@ class tx_realurl {
 		$this->devLog('Starting URL encode');
 
 		// Initializing config / request URL:
-		$this->setConfig();
+		try {
+			$this->extConf = $this->configurationService->getConfigurationForDomain($params['args']['targetDomain']);
+		} catch (Exception $e) {
+			$this->pObj->pageNotFoundAndExit($e->getMessage());
+		}
 		$adjustedConfiguration = $this->adjustConfigurationByHost('encode', $params);
-		$this->adjustRootPageId();
 		$internalExtras = array();
+		// add workspace to internal vars for caching purposes
+		if ($GLOBALS['BE_USER']->workspace) {
+			$internalExtras['workspace'] = $GLOBALS['BE_USER']->workspace;
+		}
 
 		// Init "Admin Jump"; If frontend edit was enabled by the current URL of the page, set it again in the generated URL (and disable caching!)
 		if (!$params['TCEmainHook']) {
@@ -341,11 +360,14 @@ class tx_realurl {
 
 		// Reapply config.absRefPrefix if necessary
 		if ((!isset($this->extConf['init']['reapplyAbsRefPrefix']) || $this->extConf['init']['reapplyAbsRefPrefix']) && $GLOBALS['TSFE']->absRefPrefix) {
-			// Prevent // in case of absRefPrefix ending with / and emptyUrlReturnValue=/
-			if (substr($GLOBALS['TSFE']->absRefPrefix, -1, 1) == '/' && substr($newUrl, 0, 1) == '/') {
-				$newUrl = substr($newUrl, 1);
+			if (filter_var($newUrl, FILTER_VALIDATE_URL, FILTER_FLAG_SCHEME_REQUIRED) === FALSE) {
+				// only if no absolute url is linked
+				// Prevent // in case of absRefPrefix ending with / and emptyUrlReturnValue=/
+				if (substr($GLOBALS['TSFE']->absRefPrefix, -1, 1) === '/' && substr($newUrl, 0, 1) === '/') {
+					$newUrl = substr($newUrl, 1);
+				}
+				$newUrl = $GLOBALS['TSFE']->absRefPrefix . $newUrl;
 			}
-			$newUrl = $GLOBALS['TSFE']->absRefPrefix . $newUrl;
 		}
 
 		// Set prepending of URL (e.g. hostname) which will be processed by typoLink_PostProc hook in tslib_content:
@@ -449,6 +471,13 @@ class tx_realurl {
 		// Pre-vars:
 		$this->encodeSpURL_setSequence($this->extConf['preVars'], $paramKeyValues, $pathParts);
 
+		if (isset($paramKeyValues['id'])) {
+			$externalURL = $this->checkForExternalPageAndGetTarget($paramKeyValues['id']);
+			if ($externalURL !== FALSE) {
+				return $externalURL;
+			}
+		}
+
 		// Create path from ID value:
 		$page_id = $this->encodePageId = $paramKeyValues['id'];
 		$this->encodeError = FALSE;
@@ -469,6 +498,12 @@ class tx_realurl {
 
 		// Compile Speaking URL path
 		$pathParts = $this->cleanUpPathParts($pathParts);
+
+		// replace empty values (that looks like "//")
+		if ((int) $this->extConf['init']['postReplaceEmptyValues'] === 1 ) {
+			$emptyPathSegmentReplaceValue = ($this->extConf['init']['emptyValuesReplacer']) ? $this->extConf['init']['emptyValuesReplacer'] : $this->emptyReplacerDefaultValue;
+			$pathParts = preg_replace('#(?<!:)//#', '/' . $emptyPathSegmentReplaceValue . '/', $pathParts); 	//   input: //// output: /-//-/
+		}
 
 		// Add filename, if any:
 		$newUrl = $this->createURLWithFileName($paramKeyValues, $pathParts);
@@ -956,9 +991,13 @@ class tx_realurl {
 		$this->pObj = &$params['pObj'];
 
 		// Initializing config / request URL:
-		$this->setConfig();
+		try {
+			$this->extConf = $this->configurationService->getConfigurationForDomain();
+		} catch (Exception $e) {
+			$this->pObj->pageNotFoundAndExit($e->getMessage());
+		}
 		$this->adjustConfigurationByHost('decode');
-		$this->adjustRootPageId();
+
 
 		// If there has been a redirect (basically; we arrived here otherwise than via "index.php" in the URL) this can happend either due to a CGI-script or because of reWrite rule. Earlier we used $GLOBALS['HTTP_SERVER_VARS']['REDIRECT_URL'] to check but...
 		if ($this->pObj->siteScript && substr($this->pObj->siteScript, 0, 9) != 'index.php' && substr($this->pObj->siteScript, 0, 1) != '?') {
@@ -1134,6 +1173,11 @@ class tx_realurl {
 				'url_hash=' . $hash . ' AND url=' . $url . ' AND domain_limit=' . $redirectRow['domain_limit'],
 				$fields_values, array('counter'));
 
+			// Convert to realurl url if the path begins with '/id='
+			if (t3lib_div::isFirstPartOfStr($redirectRow['destination'], '/id=')) {
+				$redirect_row['destination'] = $this->encodeSpURL_doEncode(substr($redirectRow['destination'], 1), $this->extConf['init']['enableCHashCache']);
+			}
+
 			// Redirect
 			if ($redirectRow['has_moved']) {
 				header('HTTP/1.1 301 Moved Permanently');
@@ -1180,6 +1224,30 @@ class tx_realurl {
 		// Strip/process file name or extension first
 		$file_GET_VARS = $this->decodeSpURL_decodeFileName($pathParts);
 
+		// Clear former replaced empty values
+		if ((int) $this->extConf['init']['postReplaceEmptyValues'] === 1) {
+			$emptyPathSegmentReplaceValue = ($this->extConf['init']['emptyValuesReplacer']) ? $this->extConf['init']['emptyValuesReplacer'] : $this->emptyReplacerDefaultValue;
+			foreach ($pathParts as $k => $v) {
+				if ($v === $emptyPathSegmentReplaceValue) {
+					$pathParts[$k] = '';
+				}
+			}
+		}
+		$this->filePart = array_pop($pathParts);
+
+		// Checking default HTML name:
+		if (strlen($this->filePart) && ($this->extConf['fileName']['defaultToHTMLsuffixOnPrev']
+			|| $this->extConf['fileName']['acceptHTMLsuffix'])
+			&& !isset($this->extConf['fileName']['index'][$this->filePart]))
+		{
+			$suffix = preg_quote($this->isString($this->extConf['fileName']['defaultToHTMLsuffixOnPrev'], 'defaultToHTMLsuffixOnPrev') ? $this->extConf['fileName']['defaultToHTMLsuffixOnPrev'] : '.html', '/');
+			if ($this->isString($this->extConf['fileName']['acceptHTMLsuffix'], 'acceptHTMLsuffix')) {
+				$suffix = '(' . $suffix . '|' . preg_quote($this->extConf['fileName']['acceptHTMLsuffix'], '/') . ')';
+			}
+			$pathParts[] = preg_replace('/' . $suffix . '$/', '', $this->filePart);
+			$this->filePart = '';
+		}
+
 		// Setting original dir-parts:
 		$this->dirParts = $pathParts;
 
@@ -1201,11 +1269,11 @@ class tx_realurl {
 		list($cachedInfo['id'], $id_GET_VARS, $cachedInfo['rootpage_id']) = $this->decodeSpURL_idFromPath($pathParts);
 
 		// Fixed Post-vars:
-		$fixedPostVarSetCfg = $this->getPostVarSetConfig($cachedInfo['id'], 'fixedPostVars');
+		$fixedPostVarSetCfg = $this->getPostVarSetConfig($cachedInfo['id'] ? $cachedInfo['id'] : $cachedInfo['rootpage_id'], 'fixedPostVars');
 		$fixedPost_GET_VARS = $this->decodeSpURL_settingPreVars($pathParts, $fixedPostVarSetCfg);
 
 		// Setting "postVarSets":
-		$postVarSetCfg = $this->getPostVarSetConfig($cachedInfo['id']);
+		$postVarSetCfg = $this->getPostVarSetConfig($cachedInfo['id'] ? $cachedInfo['id'] : $cachedInfo['rootpage_id']);
 		$post_GET_VARS = $this->decodeSpURL_settingPostVarSets($pathParts, $postVarSetCfg, $cachedInfo['id']);
 
 		// Looking for remaining parts:
@@ -1231,6 +1299,10 @@ class tx_realurl {
 			$cHash_value = $this->decodeSpURL_cHashCache($speakingURIpath);
 			if ($cHash_value) {
 				$cachedInfo['GET_VARS']['cHash'] = $cHash_value;
+			} elseif (!empty($cachedInfo['GET_VARS'])) {
+				/** @var TYPO3\CMS\Frontend\Page\CacheHashCalculator $cacheHashCalculator */
+				$cacheHashCalculator = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\CMS\Frontend\Page\CacheHashCalculator');
+				$cachedInfo['GET_VARS']['cHash'] = $cacheHashCalculator->generateForParameters($cachedInfo['GET_VARS']);
 			}
 		}
 
@@ -1646,11 +1718,17 @@ class tx_realurl {
 									'setup' => $setup
 								);
 								$value = t3lib_div::callUserFunction($setup['userFunc'], $params, $this);
-							} elseif (is_array($setup['lookUpTable'])) {
+							} elseif (is_array($setup['lookUpTable']) && $value != '') {
 								$temp = $value;
 								$value = $this->lookUpTranslation($setup['lookUpTable'], $value, TRUE);
-								if ($setup['lookUpTable']['enable404forInvalidAlias'] && !self::testInt($value) && !strcmp($value, $temp)) {
-									$this->decodeSpURL_throw404('Couldn\'t map alias "' . $value . '" to an ID');
+								if (!t3lib_div::testInt($value) && !strcmp($value, $temp)) {
+									// no match found
+									if ($setup['lookUpTable']['enable404forInvalidAlias'] ) {
+										$this->decodeSpURL_throw404('Couldn\'t map alias "' . $value . '" to an ID');
+									} elseif($setup['lookUpTable']['noMatchIfNotFound']) {
+										array_unshift($pathParts, $origValue);
+										break;
+									}
 								}
 							} elseif (isset($setup['valueDefault'])) { // If no matching value and a default value is given, set that:
 								$value = $setup['valueDefault'];
@@ -1990,15 +2068,29 @@ class tx_realurl {
 	 * @see lookUpTranslation(), lookUp_idToUniqAlias()
 	 */
 	protected function lookUp_uniqAliasToId($cfg, $aliasValue, $onlyNonExpired = FALSE) {
+		static $cache = array();
+		$parameterHash = md5(serialize($cfg) . serialize($aliasValue) . serialize($onlyNonExpired));
+
+		if (isset($cache[$parameterHash])) {
+			return $cache[$parameterHash];
+		}
+
+		$rootpageId = isset($cfg['useUniqueCache_conf']['rootpage_id']) ? intval($cfg['useUniqueCache_conf']['rootpage_id']) : 0;
 
 		// Look up the ID based on input alias value:
 		list($row) = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('value_id', 'tx_realurl_uniqalias',
 				'value_alias=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($aliasValue, 'tx_realurl_uniqalias') .
+				' AND rootpage_id IN (0,' . $rootpageId . ')' .
 				' AND field_alias=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($cfg['alias_field'], 'tx_realurl_uniqalias') .
 				' AND field_id=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($cfg['id_field'], 'tx_realurl_uniqalias') .
 				' AND tablename=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($cfg['table'], 'tx_realurl_uniqalias') .
 				' AND ' . ($onlyNonExpired ? 'expire=0' : '(expire=0 OR expire>' . time() . ')'));
-		return (is_array($row) ? $row['value_id'] : false);
+		$returnValue = (is_array($row) ? $row['value_id'] : FALSE);
+
+		if ($returnValue) {
+			$cache[$parameterHash] = $returnValue;
+		}
+		return $returnValue;
 	}
 
 	/**
@@ -2013,10 +2105,19 @@ class tx_realurl {
 	 * @see lookUpTranslation(), lookUp_uniqAliasToId()
 	 */
 	protected function lookUp_idToUniqAlias($cfg, $idValue, $lang, $aliasValue = '') {
+		static $cache = array();
+		$parameterHash = md5(serialize($cfg) . serialize($idValue) . serialize($lang) . serialize($aliasValue));
+
+		if (isset($cache[$parameterHash])) {
+			return $cache[$parameterHash];
+		}
+
+		$rootpageId = isset($cfg['useUniqueCache_conf']['rootpage_id']) ? intval($cfg['useUniqueCache_conf']['rootpage_id']) : 0;
 
 		// Look for an alias based on ID:
 		list($row) = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('value_alias', 'tx_realurl_uniqalias',
 				'value_id=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($idValue, 'tx_realurl_uniqalias') .
+				' AND rootpage_id IN (0,' . $rootpageId . ')' .
 				' AND field_alias=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($cfg['alias_field'], 'tx_realurl_uniqalias') .
 				' AND field_id=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($cfg['id_field'], 'tx_realurl_uniqalias') .
 				' AND tablename=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($cfg['table'], 'tx_realurl_uniqalias') .
@@ -2025,10 +2126,14 @@ class tx_realurl {
 				($aliasValue ? ' AND value_alias=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($aliasValue, 'tx_realurl_uniqalias') : ''),
 				'', '', '1');
 		if (is_array($row)) {
-			return $row['value_alias'];
+			$returnValue =  $row['value_alias'];
+		} else {
+			$returnValue = NULL;
 		}
-		return null;
-	}
+		// @todo check if we should cache anything if $returnValue is "false"
+		$cache[$parameterHash] = $returnValue;
+		return $returnValue;
+ 	}
 
 	/**
 	 * Creates a new alias<->id relation in database lookup table.
@@ -2078,8 +2183,9 @@ class tx_realurl {
 			$uniqueAlias = $newAliasValue .= '-' . t3lib_div::shortMD5(microtime());
 		}
 
+		$rootpageId = isset($cfg['useUniqueCache_conf']['rootpage_id']) ? intval($cfg['useUniqueCache_conf']['rootpage_id']) : 0;
 		// Insert the new id<->alias relation:
-		$insertArray = array('tstamp' => time(), 'tablename' => $cfg['table'], 'field_alias' => $cfg['alias_field'], 'field_id' => $cfg['id_field'], 'value_alias' => $uniqueAlias, 'value_id' => $idValue, 'lang' => $lang);
+		$insertArray = array('tstamp' => time(), 'tablename' => $cfg['table'], 'field_alias' => $cfg['alias_field'], 'field_id' => $cfg['id_field'], 'value_alias' => $uniqueAlias, 'value_id' => $idValue, 'lang' => $lang, 'rootpage_id' => $rootpageId);
 
 		// Checking that this alias hasn't been stored since we looked last time:
 		$returnAlias = $this->lookUp_idToUniqAlias($cfg, $idValue, $lang, $uniqueAlias);
@@ -2091,6 +2197,7 @@ class tx_realurl {
 			// Expire all other aliases:
 			// Look for an alias based on ID:
 			$GLOBALS['TYPO3_DB']->exec_UPDATEquery('tx_realurl_uniqalias', 'value_id=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($idValue, 'tx_realurl_uniqalias') . '
+					AND rootpage_id IN (0,' . $rootpageId . ')
 					AND field_alias=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($cfg['alias_field'], 'tx_realurl_uniqalias') . '
 					AND field_id=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($cfg['id_field'], 'tx_realurl_uniqalias') . '
 					AND tablename=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($cfg['table'], 'tx_realurl_uniqalias') . '
@@ -2159,64 +2266,6 @@ class tx_realurl {
 	 * General helper functions (both decode/encode)
 	 *
 	 ******************************/
-
-	/**
-	 * Sets configuration in $this->extConf, taking host domain into account
-	 *
-	 * @return	void
-	 * @see encodeSpURL(), decodeSpURL()
-	 */
-	protected function setConfig() {
-
-		// Finding host-name / IP, always in lowercase:
-		$this->hostConfigured = $this->host = $this->getHost();
-
-		$_realurl_conf = (array)@unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['realurl']);
-		// Autoconfiguration
-		if ($_realurl_conf['enableAutoConf'] && !isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['realurl']) && !@include_once (PATH_site . TX_REALURL_AUTOCONF_FILE) && !isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['realurl'])) {
-			require_once (t3lib_extMgm::extPath('realurl', 'class.tx_realurl_autoconfgen.php'));
-			$_realurl_gen = t3lib_div::makeInstance('tx_realurl_autoconfgen');
-			$_realurl_gen->generateConfiguration();
-			unset($_realurl_gen);
-			@include_once(PATH_site . TX_REALURL_AUTOCONF_FILE);
-		}
-
-		$extConf = &$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['realurl'];
-
-		$this->multidomain = $this->isMultidomain();
-
-		// First pass, finding configuration OR pointer string:
-		if (isset($extConf[$this->host])) {
-			$this->extConf = $extConf[$this->host];
-
-			// If it turned out to be a string pointer, then look up the real config:
-			while (!is_null($this->extConf) && is_string($this->extConf)) {
-				$this->hostConfigured = $this->extConf;
-				$this->extConf = $extConf[$this->extConf];
-			}
-			if (!is_array($this->extConf)) {
-				$this->extConf = $extConf['_DEFAULT'];
-				$this->hostConfigured = '_DEFAULT';
-				if ($this->multidomain && isset($this->extConf['pagePath']['rootpage_id'])) {
-					// This can't be right!
-					unset($this->extConf['pagePath']['rootpage_id']);
-				}
-			}
-		}
-		else {
-			if ($this->enableStrictMode && $this->multidomain) {
-				$this->pObj->pageNotFoundAndExit('RealURL strict mode error: ' .
-					'multidomain configuration detected and domain \'' . $this->host .
-					'\' is not configured for RealURL. Please, fix your RealURL configuration!');
-			}
-			$this->extConf = (array)$extConf['_DEFAULT'];
-			$this->hostConfigured = '_DEFAULT';
-			if ($this->multidomain && isset($this->extConf['pagePath']['rootpage_id'])) {
-				// This can't be right!
-				unset($this->extConf['pagePath']['rootpage_id']);
-			}
-		}
-	}
 
 	/**
 	 * Determines the current host. Sometimes it is not possible to determine
@@ -2791,6 +2840,48 @@ class tx_realurl {
 			$result = t3lib_utility_Math::canBeInterpretedAsInteger($value);
 		}
 		return $result;
+	}
+
+	/**
+	 * checks if the pageId is an external url - and then returns the absolute url
+	 *
+	 * @param $id
+	 * @return mixed string|bool
+	 */
+	protected function checkForExternalPageAndGetTarget($id) {
+		$where = "uid=\"" . intval($id) . "\"";
+		$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,pid,url,doktype,urltype", "pages", $where);
+		if ($query) {
+			$result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
+			$GLOBALS['TSFE']->sys_page->versionOL("pages", $result);
+		}
+		$result = $GLOBALS['TSFE']->sys_page->getPageOverlay($result);
+		if (count($result)) {
+			if ($result['doktype'] == 3) {
+				$url = $result['url'];
+				switch ($result['urltype']) {
+					case '1':
+						return 'http://' . $url;
+						break;
+					case '4':
+						return 'https://' . $url;
+						break;
+					case '2':
+						return 'ftp://' . $url;
+						break;
+					case '3':
+						return 'mailto:' . $url;
+						break;
+					default:
+						return $url;
+						break;
+				}
+			} else {
+				return FALSE;
+			}
+		} else {
+			return FALSE;
+		}
 	}
 }
 

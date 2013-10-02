@@ -304,12 +304,41 @@ class tx_realurl_tcemain {
 	 * @param string $tableName
 	 * @param int $recordId
 	 * @param array $databaseData
+	 * @param \TYPO3\CMS\Core\DataHandling\DataHandler $reference
 	 * @return void
 	 * @todo Expire unique alias cache: how to get the proper timeout value easily here?
 	 */
-	public function processDatamap_afterDatabaseOperations($status, $tableName, $recordId, array $databaseData) {
+	public function processDatamap_afterDatabaseOperations($status, $tableName, $recordId, array $databaseData, \TYPO3\CMS\Core\DataHandling\DataHandler &$reference) {
 		$this->processContentUpdates($status, $tableName, $recordId, $databaseData);
 		$this->clearAutoConfiguration($tableName);
+		$this->markCachesDirty($tableName, $recordId, $reference);
+	}
+
+	/**
+	 * In case an page-overlay is created automatically the excludeFromMiddle value needs to be copied
+	 * See issue #12007
+	 *
+	 * @package realurl
+	 * @subpackage aoe_realurlpath
+	 * @param array $incomingFieldArray
+	 * @param string $table
+	 * @param string $id
+	 * @param \TYPO3\CMS\Core\DataHandling\DataHandler $reference
+	 * @return void
+	 */
+	public function processDatamap_preProcessFieldArray(&$incomingFieldArray, $table, $id, \TYPO3\CMS\Core\DataHandling\DataHandler &$reference) {
+
+		if ($table != 'pages_language_overlay' || $id != 'NEW') {
+			return;
+		}
+
+		if (intval($incomingFieldArray['pid'])) {
+			$parent = \TYPO3\CMS\Backend\Utility\BackendUtility::getRecord('pages', intval($incomingFieldArray['pid']), 'uid,pid,tx_realurl_exclude');
+			\TYPO3\CMS\Backend\Utility\BackendUtility::workspaceOL('pages', $parent);
+			if ($parent['tx_realurl_exclude']) {
+				$incomingFieldArray['tx_realurl_exclude'] = $parent['tx_realurl_exclude'];
+			}
+		}
 	}
 
 	/**
@@ -354,6 +383,25 @@ class tx_realurl_tcemain {
 		return $result;
 	}
 
+	/**
+	 * @param string $tableName
+	 * @param int $recordId
+	 * @param \TYPO3\CMS\Core\DataHandling\DataHandler $reference
+	 * @return void
+	 */
+	protected function markCachesDirty($tableName, $recordId, \TYPO3\CMS\Core\DataHandling\DataHandler &$reference) {
+			if ($tableName == 'pages') {
+			$cache = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('Tx_Realurl_CacheManagement', $GLOBALS['BE_USER']->workspace, 0);
+			$cache->markAsDirtyCompletePid($recordId);
+		}
+		if ($tableName == 'pages_language_overlay') {
+			$pid = $reference->checkValue_currentRecord['pid'];
+			if ($pid) {
+				$cache = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('Tx_Realurl_CacheManagement', $GLOBALS['BE_USER']->workspace, 0);
+				$cache->markAsDirtyCompletePid($pid);
+			}
+		}
+	}
 }
 
 if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/realurl/class.tx_realurl_tcemain.php'])	{
