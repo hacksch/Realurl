@@ -1302,7 +1302,8 @@ class tx_realurl {
 			} elseif (!empty($cachedInfo['GET_VARS'])) {
 				/** @var TYPO3\CMS\Frontend\Page\CacheHashCalculator $cacheHashCalculator */
 				$cacheHashCalculator = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\CMS\Frontend\Page\CacheHashCalculator');
-				$cachedInfo['GET_VARS']['cHash'] = $cacheHashCalculator->calculateCacheHash($cachedInfo['GET_VARS']);
+				$queryString = \TYPO3\CMS\Core\Utility\GeneralUtility::implodeArrayForUrl('', $cachedInfo['GET_VARS']);
+				$cachedInfo['GET_VARS']['cHash'] = $cacheHashCalculator->generateForParameters($queryString);
 			}
 		}
 
