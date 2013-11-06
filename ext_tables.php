@@ -71,8 +71,9 @@ if (t3lib_div::compat_version('4.3')) {
 }
 if (t3lib_div::compat_version('4.2')) {
 	// For 4.2 or new add fields to advanced page only
-	t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '1', 'after:nav_title');
-	t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '4,199,254', 'after:title');
+	// Workaround: add fields _before_ the second palette to make them appear at the end of the first palette
+	t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '1', 'before:--div--');
+	t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '4,199,254', 'before:--div--');
 }
 else {
 	// Put it for standard page
