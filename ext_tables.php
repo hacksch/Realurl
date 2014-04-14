@@ -67,8 +67,8 @@ $TCA['pages']['palettes']['137'] = array(
 );
 
 t3lib_extMgm::addFieldsToPalette('pages', '3', 'tx_realurl_nocache', 'after:cache_timeout');
-t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '1', 'after:title');
-t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '4,199,254', 'after:title');
+t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '1,4,199,254', 'after:title');
+t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_exclude', '3', 'after:title');
 
 t3lib_extMgm::addLLrefForTCAdescr('pages','EXT:realurl/locallang_csh.xml');
 
