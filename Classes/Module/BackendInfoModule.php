@@ -195,9 +195,10 @@ class Tx_Realurl_Module_BackendInfoModule extends tx_realurl_modfunc1 {
 				}
 
 				$langId = $language['uid'];
-				if (\TYPO3\CMS\Core\Utility\GeneralUtility::_GP('_action_regenerate') !== '') {
+				$actionRegenerate = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('_action_regenerate');
+				if ($actionRegenerate !== NULL) {
 					$url = \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_SITE_URL') . 'index.php?id=' . $editUid . '&no_cache=1&L=' . $langId;
-					fopen($url, 'r');
+					\TYPO3\CMS\Core\Utility\GeneralUtility::getUrl($url);
 				}
 				$info = '';
 				$params = '&edit[pages][' . $editUid . ']=edit';
