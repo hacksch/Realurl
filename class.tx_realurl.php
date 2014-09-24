@@ -420,7 +420,6 @@ class tx_realurl {
 			}
 		}
 
-		// Create path from ID value:
 		// Create path from ID value
 		$page_id = $this->encodePageId = $paramKeyValues['id'];
 		$this->encodeError = FALSE;
@@ -442,13 +441,12 @@ class tx_realurl {
 		// Compile Speaking URL path
 		$pathParts = $this->cleanUpPathParts($pathParts);
 
-			//replace emtpy values (that looks like "//")
+		// replace empty values (that looks like "//")
 		if ($this->extConf['init']['postReplaceEmptyValues'] == 1 ) {
 			$emptyPathSegmentReplaceValue = ($this->extConf['init']['emptyValuesReplacer'])?$this->extConf['init']['emptyValuesReplacer']:$this->emptyReplacerDefaultValue;
 			$pathParts = preg_replace('#(?<!:)//#', '/' . $emptyPathSegmentReplaceValue . '/', $pathParts); 	//   input: //// output: /-//-/
 		}
 
-		// Add filename, if any:
 		// Add filename, if any
 		$newUrl = $this->createURLWithFileName($paramKeyValues, $pathParts);
 
@@ -483,7 +481,7 @@ class tx_realurl {
 	 * Creating the TYPO3 Page path into $pathParts from the "id" value in $paramKeyValues
 	 *
 	 * @param array $paramKeyValues Current URLs GETvar => value pairs in array, being translated into pathParts: Here we take out "id" GET var.
-	 * @param array $pathParts Numerical array of path-parts, continously being filled. Here, the "page path" is being added by which-ever method is preferred. Passed by reference.
+	 * @param array $pathParts Numerical array of path-parts, continuously being filled. Here, the "page path" is being added by which-ever method is preferred. Passed by reference.
 	 * @return void Unsetting "id" from $paramKeyValues / Setting page path in $pathParts
 	 * @see encodeSpURL_doEncode()
 	 */
@@ -510,8 +508,8 @@ class tx_realurl {
 	/**
 	 * Traversing setup for variables AFTER the page path.
 	 *
-	 * @param array $paramKeyValues Current URLs GETvar => value pairs in array, being translated into pathParts, continously shortend. Passed by reference.
-	 * @param array $pathParts Numerical array of path-parts, continously being filled. Passed by reference.
+	 * @param array $paramKeyValues Current URLs GETvar => value pairs in array, being translated into pathParts, continuously shortend. Passed by reference.
+	 * @param array $pathParts Numerical array of path-parts, continuously being filled. Passed by reference.
 	 * @param array $postVarSetCfg config
 	 * @return void	Removing values from $paramKeyValues / Setting values in $pathParts
 	 * @see encodeSpURL_doEncode(), decodeSpURL_settingPostVarSets()
@@ -569,7 +567,7 @@ class tx_realurl {
 	/**
 	 * Setting a filename if any filename is configured to match remaining variables.
 	 *
-	 * @param array $paramKeyValues Current URLs GETvar => value pairs in array, being translated into pathParts, continously shortend. Passed by reference.
+	 * @param array $paramKeyValues Current URLs GETvar => value pairs in array, being translated into pathParts, continuously shortend. Passed by reference.
 	 * @return string Returns the filename to prepend, if any
 	 * @see encodeSpURL_doEncode(), decodeSpURL_fileName()
 	 */
@@ -591,8 +589,8 @@ class tx_realurl {
 	 * Traverses a set of GETvars configured (array of segments)
 	 *
 	 * @param array $varSetCfg Array of segment-configurations.
-	 * @param array $paramKeyValues Current URLs GETvar => value pairs in array, being translated into pathParts, continously shortend. Passed by reference.
-	 * @param array $pathParts Numerical array of path-parts, continously being filled. Passed by reference.
+	 * @param array $paramKeyValues Current URLs GETvar => value pairs in array, being translated into pathParts, continuously shortend. Passed by reference.
+	 * @param array $pathParts Numerical array of path-parts, continuously being filled. Passed by reference.
 	 * @return void Removing values from $paramKeyValues / Setting values in $pathParts
 	 * @see encodeSpURL_doEncode(), encodeSpURL_gettingPostVarSets(), decodeSpURL_getSequence()
 	 */
@@ -717,8 +715,8 @@ class tx_realurl {
 	 *
 	 * @param string $keyWord Keyword to set as a representation of the GETvars configured.
 	 * @param array $keyValues Array of GETvar => values which content in $paramKeyvalues must match exactly in order to be substituted with the keyword, $keyWord
-	 * @param array $paramKeyValues Current URLs GETvar => value pairs in array, being translated into pathParts, continously shortend. Passed by reference.
-	 * @param array $pathParts Numerical array of path-parts, continously being filled. Passed by reference.
+	 * @param array $paramKeyValues Current URLs GETvar => value pairs in array, being translated into pathParts, continuously shortend. Passed by reference.
+	 * @param array $pathParts Numerical array of path-parts, continuously being filled. Passed by reference.
 	 * @return boolean Return true, if any value from $paramKeyValues was removed.
 	 * @see encodeSpURL_fileName(), encodeSpURL_gettingPostVarSets(), decodeSpURL_getSingle()
 	 */
@@ -821,7 +819,7 @@ class tx_realurl {
 	}
 
 	/**
-	 * Will store a record in a cachetable holding the value of the "cHash" parameter in a link, if any.
+	 * Will store a record in a cache table holding the value of the "cHash" parameter in a link, if any.
 	 * Background:
 	 * The "cHash" parameter is a hash over the values in the Query String of a URL and it "authenticates" the URL to the frontend so we can safely cache page content with that parameter combination.
 	 * Technically, there is no problem with the "cHash" parameter - it is like any other parameter something we could encode with Speaking URLs. The problem is: a cHash string is not "speaking" (and never will be!)
@@ -933,7 +931,7 @@ class tx_realurl {
 	 * Function is called from tslib_fe
 	 * The overall format of a speaking URL is these five parts [TYPO3_SITE_URL] / [pre-var] / [page-identification] / [post-vars] / [file.ext]
 	 * - "TYPO3_SITE_URL" is fixed value from the environment,
-	 * - "pre-var" is any number of segments separated by "/" mapping to GETvars AND with a known lenght,
+	 * - "pre-var" is any number of segments separated by "/" mapping to GETvars AND with a known length,
 	 * - "page-identification" identifies the page id in TYPO3 possibly with multiple segments separated by "/" BUT with an UNKNOWN length,
 	 * - "post-vars" is sets of segments offering the same features as "pre-var"
 	 * - "file.ext" is any filename that might apply
@@ -956,7 +954,7 @@ class tx_realurl {
 		}
 		$this->adjustConfigurationByHost('decode');
 
-		// If there has been a redirect (basically; we arrived here otherwise than via "index.php" in the URL) this can happend either due to a CGI-script or because of reWrite rule. Earlier we used $GLOBALS['HTTP_SERVER_VARS']['REDIRECT_URL'] to check but...
+		// If there has been a redirect (basically; we arrived here otherwise than via "index.php" in the URL) this can happened either due to a CGI-script or because of reWrite rule. Earlier we used $GLOBALS['HTTP_SERVER_VARS']['REDIRECT_URL'] to check but...
 		if ($this->pObj->siteScript && substr($this->pObj->siteScript, 0, 9) != 'index.php' && substr($this->pObj->siteScript, 0, 1) != '?') {
 
 			// Getting the path which is above the current site url
@@ -1138,8 +1136,8 @@ class tx_realurl {
 			 * This is the part the actually differs from the original method
 			 */
 			// Convert to realurl url if the path begins with '/id='
-			if (t3lib_div::isFirstPartOfStr($redirect_row['destination'], '/id=')) {
-				$redirect_row['destination'] = $this->encodeSpURL_doEncode(substr($redirect_row['destination'], 1), $this->extConf['init']['enableCHashCache']);
+			if (t3lib_div::isFirstPartOfStr($redirectRow['destination'], '/id=')) {
+				$redirectRow['destination'] = $this->encodeSpURL_doEncode(substr($redirectRow['destination'], 1), $this->extConf['init']['enableCHashCache']);
 			}
 			/**
 			 * This is the part the actually differs from the original method [end]
@@ -1190,7 +1188,7 @@ class tx_realurl {
 		// Strip/process file name or extension first
 		$file_GET_VARS = $this->decodeSpURL_decodeFileName($pathParts);
 
-			//clear former replaced empty values
+		// Clear former replaced empty values
 		if ($this->extConf ['init'] ['postReplaceEmptyValues'] == 1) {
 			$emptyPathSegmentReplaceValue = ($this->extConf ['init'] ['emptyValuesReplacer']) ? $this->extConf ['init'] ['emptyValuesReplacer'] : $this->emptyReplacerDefaultValue;
 			foreach ( $pathParts as $k => $v ) {
@@ -1231,12 +1229,10 @@ class tx_realurl {
 		// make preVars accessible
 		$this->pre_GET_VARS = $pre_GET_VARS;
 
-		// Setting page id:
 		// Setting page id
 		list($cachedInfo['id'], $id_GET_VARS, $cachedInfo['rootpage_id']) = $this->decodeSpURL_idFromPath($pathParts);
 
-
-		// Fixed Post-vars:
+		// Fixed Post-vars
 		$fixedPostVarSetCfg = $this->getPostVarSetConfig($cachedInfo['id'] ? $cachedInfo['id'] : $cachedInfo['rootpage_id'], 'fixedPostVars');
 		$fixedPost_GET_VARS = $this->decodeSpURL_settingPreVars($pathParts, $fixedPostVarSetCfg);
 
@@ -1397,7 +1393,7 @@ class tx_realurl {
 	/**
 	 * Analysing the path AFTER the page identification part of the URL
 	 *
-	 * @param array $pathParts The path splitted by "/". NOTICE: Passed by reference and shortend for each time a segment is matching configuration
+	 * @param array $pathParts The path split by "/". NOTICE: Passed by reference and shortend for each time a segment is matching configuration
 	 * @param array $postVarSetCfg $postVarSetCfg config
 	 * @param int $pid
 	 * @return array GET-vars resulting from the analysis
@@ -1505,7 +1501,7 @@ class tx_realurl {
 	 * Decodes the file name and adjusts file parts accordingly
 	 *
 	 * @param array $pathParts Path parts of the URLs (can be modified)
-	 * @return array GET varaibles from the file name or empty array
+	 * @return array GET variables from the file name or empty array
 	 */
 	protected function decodeSpURL_decodeFileName(array &$pathParts) {
 		$getVars = array();
@@ -1573,7 +1569,7 @@ class tx_realurl {
 	 * @param string $extension
 	 * @param array $pathPartsCopy Path parts (can be modified)
 	 * @param array $getVars
-	 * @return array GET variables (can be enpty in case if there is a default file name)
+	 * @return array GET variables (can be empty in case if there is a default file name)
 	 * @see tx_realurl::decodeSpURL_decodeFileName()
 	 */
 	protected function decodeSpURL_decodeFileName_lookupInIndex($fileName, $segment, $extension, array &$pathPartsCopy, array &$getVars) {
@@ -2255,7 +2251,6 @@ class tx_realurl {
 		$space = $cfg['useUniqueCache_conf']['spaceCharacter'] ? substr($cfg['useUniqueCache_conf']['spaceCharacter'], 0, 1) : '_';
 		$processedTitle = strtr($processedTitle, ' -+_', $space . $space . $space . $space); // convert spaces
 
-
 		// Convert extended letters to ascii equivalents
 		$processedTitle = $GLOBALS['TSFE']->csConvObj->specCharsToASCII($charset, $processedTitle);
 
@@ -2267,6 +2262,7 @@ class tx_realurl {
 		else {
 			$processedTitle = preg_replace('/[^a-zA-Z0-9\\' . $space . ']/', '', $processedTitle);
 		}
+
 		$processedTitle = preg_replace('/\\' . $space . '{2,}/', $space, $processedTitle); // Convert multiple 'spaces' to a single one
 		$processedTitle = trim($processedTitle, $space);
 
@@ -2650,7 +2646,7 @@ class tx_realurl {
 	}
 
 	/**
-	 * Checks if TYPO3 runs in the multidomain environment with different page ids
+	 * Checks if TYPO3 runs in the multi-domain environment with different page ids
 	 *
 	 * @return	boolean
 	 */
@@ -2676,7 +2672,7 @@ class tx_realurl {
 
 			if ($this->enableStrictMode) {
 				$this->pObj->pageNotFoundAndExit('RealURL strict mode error: ' .
-					'multidomain configuration without rootpage_id. ' .
+					'multi-domain configuration without rootpage_id. ' .
 					'Please, fix your RealURL configuration!');
 			}
 
@@ -2862,7 +2858,7 @@ class tx_realurl {
 	}
 
 	/**
-	 * checks if the pageid is an external url - and then returns the absolute url
+	 * checks if the page-id is an external url - and then returns the absolute url
 	 *
 	 * @return mixed    string with url or false
 	 */

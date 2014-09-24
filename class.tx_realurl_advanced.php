@@ -75,7 +75,7 @@ class tx_realurl_advanced {
 	protected $extConf;
 
 	/**
-	 * Main function, called for both encoding and deconding of URLs.
+	 * Main function, called for both encoding and decoding of URLs.
 	 * Based on the "mode" key in the $params array it branches out to either decode or encode functions.
 	 *
 	 * @param array $params Parameters passed from parent object, "tx_realurl". Some values are passed by reference! (paramKeyValues, pathParts and pObj)
@@ -112,7 +112,7 @@ class tx_realurl_advanced {
 
 	/**
 	 * Retrieve the page path for the given page-id.
-	 * If the page is a shortcut to another page, it returns the page path to the shortcutted page.
+	 * If the page is a shortcut to another page, it returns the page path to the shortcut page.
 	 * MP get variables are also encoded with the page id.
 	 *
 	 * @param array $paramKeyValues GETvar parameters containing eg. "id" key with the page id/alias (passed by reference)
@@ -356,7 +356,7 @@ class tx_realurl_advanced {
 					'pagepath' => trim($page['tx_realurl_pathsegment'], '/'),
 					'langID' => intval($lang),
 					// TODO Might be better to fetch root line here to process mount
-					// points and inner subdomains correctly.
+					// points and inner sub-domains correctly.
 					'rootpage_id' => intval($this->conf['rootpage_id'])
 				);
 			}
@@ -565,7 +565,7 @@ class tx_realurl_advanced {
 	 * There is also a function $TSFE->sysPage->getPathFromRootline, but that one can only be used for a visual
 	 * indication of the path in the backend, not for a real page path.
 	 * Note also that the for-loop starts with 1 so the first page is stripped off. This is (in most cases) the
-	 * root of the website (which is 'handled' by the domainname).
+	 * root of the website (which is 'handled' by the domain name).
 	 *
 	 * @param array $rl Rootline array for the current website (rootLine from TSFE->tmpl->rootLine but with modified localization according to language of the URL)
 	 * @param int $lang Language identifier (as in sys_languages)
@@ -922,9 +922,9 @@ class tx_realurl_advanced {
 	}
 
 	/**
-	 * Recursively search the subpages of $pid for the first part of $urlParts
+	 * Recursively search the sub-pages of $pid for the first part of $urlParts
 	 *
-	 * @param int $startPid Page id in which to search subpages matching first part of urlParts
+	 * @param int $startPid Page id in which to search sub-pages matching first part of urlParts
 	 * @param string $mpvar MP variable string
 	 * @param array $urlParts Segments of the virtual path (passed by reference; items removed)
 	 * @param array|string $currentIdMp Array with the current pid/mpvar to return if no processing is done.
