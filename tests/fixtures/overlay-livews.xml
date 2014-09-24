@@ -178,7 +178,7 @@
         <uid>150</uid>
         <pid>199</pid>
         <sys_language_uid>5</sys_language_uid>
-        <url>www.aoemedia.fr</url>
+        <url>www.aoe.com/fr</url>
         <title>vivelafrance</title>
         <subtitle></subtitle>
         <nav_title></nav_title>
@@ -193,6 +193,8 @@
         <title>china</title>
         <subtitle></subtitle>
         <nav_title></nav_title>
+        <url>www.aoe.com</url>
+        <urltype>4</urltype>
         <tx_realurl_pathoverride></tx_realurl_pathoverride>
         <tx_realurl_pathsegment></tx_realurl_pathsegment>
         <tx_realurl_exclude></tx_realurl_exclude>

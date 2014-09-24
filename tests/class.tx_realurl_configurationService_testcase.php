@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2009 (dev@aoemedia.de)
+ *  (c) 2009 (dev@aoe.com)
  *  All rights reserved
  *
  *  This script is part of the Typo3 project. The Typo3 project is

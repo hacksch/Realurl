@@ -255,7 +255,7 @@ class tx_realurl_pagepath {
 	 *
 	 * @return integer Current language id
 	 *
-	 * @author Michael Klapper <michael.klapper@aoemedia.de>
+	 * @author Michael Klapper <michael.klapper@aoe.com>
 	 */
 	function _getLanguageVarDecode() {
 		$getVarName = $this->conf['languageGetVar'] ? $this->conf['languageGetVar'] : 'L';
@@ -278,7 +278,7 @@ class tx_realurl_pagepath {
 	 *
 	 * @return integer Current language id
 	 *
-	 * @author Michael Klapper <michael.klapper@aoemedia.de>
+	 * @author Michael Klapper <michael.klapper@aoe.com>
 	 */
 	function _getLanguageVarEncode() {
 		$lang = FALSE;

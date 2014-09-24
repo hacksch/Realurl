@@ -79,7 +79,7 @@ class tx_realurl_crawler {
 	 * @access public
 	 * @return void
 	 *
-	 * @author Michael Klapper <michael.klapper@aoemedia.de>
+	 * @author Michael Klapper <michael.klapper@aoe.com>
 	 */
 	public function headerNoCache($params, $tsfe) {
 

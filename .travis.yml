@@ -4,7 +4,7 @@
 notifications:
   email:
     recipients:
-      - stefan.rotsch@aoemedia.de
+      - stefan.rotsch@aoe.com
     on_success: always
     on_failure: always
 
