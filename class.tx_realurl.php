@@ -1697,7 +1697,7 @@ class tx_realurl {
 							} elseif (is_array($setup['lookUpTable']) && $value != '') {
 								$temp = $value;
 								$value = $this->lookUpTranslation($setup['lookUpTable'], $value, TRUE);
-								if (!t3lib_div::testInt($value) && !strcmp($value, $temp)) {
+								if (!self::testInt($value) && !strcmp($value, $temp)) {
 									// no match found
 									if ($setup['lookUpTable']['enable404forInvalidAlias'] ) {
 										$this->decodeSpURL_throw404('Couldn\'t map alias "' . $value . '" to an ID');
