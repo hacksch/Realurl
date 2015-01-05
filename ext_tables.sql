@@ -63,7 +63,7 @@ CREATE TABLE tx_realurl_urldecodecache (
 	tstamp int(11) DEFAULT '0' NOT NULL,
 
 	PRIMARY KEY (url_hash),
-	KEY page_id (page_id),
+	KEY page_id (page_id)
 ) ENGINE=InnoDB;
 
 #
@@ -154,7 +154,7 @@ CREATE TABLE tx_realurl_cache (
 	languageid int(11) DEFAULT '0' NOT NULL,
 	pageid int(11) DEFAULT '0' NOT NULL,
 	path text NOT NULL,
-	dirty tinyint(3) DEFAULT '0' NOT NULL
+	dirty tinyint(3) DEFAULT '0' NOT NULL,
 
 	PRIMARY KEY (pageid,workspace,rootpid,languageid),
 	KEY `path_k` (path(100)),

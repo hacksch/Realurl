@@ -965,6 +965,11 @@ class tx_realurl {
 			// relative to work properly.
 			$speakingURIpath = $this->pObj->siteScript{0} == '/' ? substr($this->pObj->siteScript, 1) : $this->pObj->siteScript;
 
+            if ($this->isURIpathContainingAnProtocolWrapper($speakingURIpath)) {
+                header('Location:'.$this->getURIpathWithoutProtocolWrapper($speakingURIpath), TRUE, 301);
+                exit();
+            }
+
 			// Call hooks
 			if (is_array($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['realurl']['decodeSpURL_preProc'])) {
 				foreach($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['realurl']['decodeSpURL_preProc'] as $userFunc) {
@@ -2863,7 +2868,12 @@ class tx_realurl {
 	 * @return mixed    string with url or false
 	 */
 	private function checkForExternalPageAndGetTarget($id) {
-		$where = "uid=\"" . intval($id) . "\"";
+        if (TRUE === is_numeric($id)) {
+            $where = 'uid="' . intval($id) . '"';
+        } else {
+            $where = 'alias="' . trim($id) . '"';
+        }
+
 		$query = $GLOBALS['TYPO3_DB']->exec_SELECTquery("uid,pid,url,doktype,urltype", "pages", $where);
 		if ($query) {
 			$result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($query);
@@ -2898,6 +2908,40 @@ class tx_realurl {
 			return false;
 		}
 	}
+
+    /**
+     * get URI-path without protocol-wrapper
+     *
+     * Otherwise the following PHP-warning will appear in the TYPO3-DB-table 'sys_log', after the static method 't3lib_div::split_fileref' was called:
+     * PHP Warning: is_dir(): Unable to find the wrapper "ttp"
+     *
+     * Example:
+     * The URI-path '/my-uri-pathttp://www.google.de' or '/my-uri-pathhttp://www.google.de' will be fixed to '/my-uri-path'
+     *
+     * @param string $uriPath
+     * @return string
+     */
+    private function getURIpathWithoutProtocolWrapper($uriPath) {
+        $fixedUriPath = preg_replace('/(ttp|http)[s]?\:\/\/.*$/i', '', $uriPath);
+        $fixedUriPath = '/' . ltrim($fixedUriPath, '/');
+        return $fixedUriPath;
+    }
+
+    /**
+     * check, if URI-path contains a protocol-wrapper (this is an indicator, that the URI-path maybe contain another URL)
+     *
+     * Example:
+     * The URI-path '/my-uri-pathhttp://www.google.de' contains another URL
+     *
+     * @param string $uriPath
+     * @return boolean
+     */
+    private function isURIpathContainingAnProtocolWrapper($uriPath) {
+        if (FALSE === strpos($uriPath, '://')) {
+            return FALSE;
+        }
+        return TRUE;
+    }
 
 	/**
 	 * Returns the detected language (decoding only). Language is detected

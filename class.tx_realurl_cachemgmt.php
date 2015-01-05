@@ -267,7 +267,7 @@ class tx_realurl_cachemgmt {
 	 * @return string unique path in cache
 	 **/
 	function _readHistoryCacheForPath($pagePath) {
-		$where = "path=\"" . $this->dbObj->fullQuoteStr($pagePath, 'tx_realurl_cachehistory') . '"' . $this->_getAddCacheWhere(TRUE);
+		$where = 'path=' . $this->dbObj->fullQuoteStr($pagePath, 'tx_realurl_cachehistory') . $this->_getAddCacheWhere(TRUE);
 		$res = $this->dbObj->exec_SELECTquery("*", "tx_realurl_cachehistory", $where);
 		if ($res)
 			$result = $this->dbObj->sql_fetch_assoc($res);

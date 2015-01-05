@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2008 AOE media GmbH
+ *  (c) 2008 AOE GmbH
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -32,45 +32,17 @@
  */
 require_once (t3lib_extMgm::extPath ( "realurl" ) . 'class.tx_realurl_cachemgmt.php');
 //require_once (t3lib_extMgm::extPath('phpunit').'class.tx_phpunit_test.php');
-require_once (PATH_t3lib . 'class.t3lib_tcemain.php');
 
-class tx_realurl_cachemgmt_testcase extends tx_phpunit_database_testcase {
-
-	private $rootlineFields;
-
+class tx_realurl_cachemgmt_testcase extends tx_realurl_abstractDatabase_testcase {
+    /**
+     * setUp test-database
+     */
 	public function setUp() {
-		$GLOBALS['TYPO3_DB']->debugOutput = true;
-		$this->createDatabase();
-		$db = $this->useTestDatabase();
-		$this->importStdDB();
+        parent::setUp();
 
-			// make sure addRootlineFields has the right content - otherwise we experience DB-errors within testdb
-		$this->rootlineFields = $GLOBALS['TYPO3_CONF_VARS']['FE']['addRootLineFields'];
-		$GLOBALS['TYPO3_CONF_VARS']['FE']['addRootLineFields'] = 'tx_realurl_pathsegment,tx_realurl_pathoverride,tx_realurl_exclude';
-
-			//create relevant tables:
-		$extList = array('cms','realurl');
-		$extOptList = array('templavoila','languagevisibility','aoe_webex_tableextensions','aoe_localizeshortcut');
-		foreach($extOptList as $ext) {
-			if(t3lib_extMgm::isLoaded($ext)) {
-				$extList[] = $ext;
-			}
-		}
-		$this->importExtensions($extList);
-
+        // create/import DB-records
 		$this->importDataSet ( dirname ( __FILE__ ) . '/fixtures/page-livews.xml' );
 		$this->importDataSet ( dirname ( __FILE__ ) . '/fixtures/page-ws.xml' );
-
-		if (!is_object($GLOBALS['TSFE']->csConvObj)) {
-			$GLOBALS['TSFE']->csConvObj=t3lib_div::makeInstance('t3lib_cs');
-		}
-	}
-
-	public function tearDown() {
-		$this->cleanDatabase();
-		$this->dropDatabase();
-		$GLOBALS['TYPO3_DB']->sql_select_db(TYPO3_db);
-		$GLOBALS['TYPO3_CONF_VARS']['FE']['addRootLineFields'] = $this->rootlineFields;
 	}
 
 	/**
@@ -294,11 +266,10 @@ class tx_realurl_cachemgmt_testcase extends tx_phpunit_database_testcase {
 		$dummy = array ();
 		$pidOrFalse = $cache->checkCacheWithDecreasingPath ( array ('sample', 'path1new' ), $dummy );
 		$this->assertEquals ( $pidOrFalse, '9990', ' 9990 should be the path' );
+
 		//now check history
-		$this->markTestIncomplete('Test fail for unknown reason');
 		$pidOrFalse = $cache->checkHistoryCacheWithDecreasingPath ( array ('sample', 'path1' ), $dummy );
 		$this->assertEquals ( $pidOrFalse, '9990', ' 9990 should be the pid in history' );
-
 	}
 }
 ?>

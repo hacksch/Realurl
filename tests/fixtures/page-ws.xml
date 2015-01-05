@@ -26,7 +26,6 @@
         <t3ver_stage>0</t3ver_stage>
         <t3ver_count>0</t3ver_count>
         <t3ver_tstamp>0</t3ver_tstamp>
-        <t3ver_swapmode>-1</t3ver_swapmode>
         <t3_origuid>85</t3_origuid>
         <t3ver_move_id>0</t3ver_move_id>
     </pages>
@@ -50,7 +49,6 @@
         <t3ver_stage>0</t3ver_stage>
         <t3ver_count>0</t3ver_count>
         <t3ver_tstamp>0</t3ver_tstamp>
-        <t3ver_swapmode>-1</t3ver_swapmode>
         <t3_origuid>1000</t3_origuid>
         <t3ver_move_id>0</t3ver_move_id>
     </pages>
@@ -74,7 +72,6 @@
         <t3ver_stage>0</t3ver_stage>
         <t3ver_count>0</t3ver_count>
         <t3ver_tstamp>0</t3ver_tstamp>
-        <t3ver_swapmode>-1</t3ver_swapmode>
         <t3_origuid>1002</t3_origuid>
         <t3ver_move_id>0</t3ver_move_id>
     </pages>
