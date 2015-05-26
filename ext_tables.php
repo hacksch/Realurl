@@ -67,19 +67,10 @@ $TCA['pages']['palettes']['137'] = array(
 	'showitem' => 'tx_realurl_pathoverride'
 );
 
-if (t3lib_div::compat_version('4.3')) {
-	t3lib_extMgm::addFieldsToPalette('pages', '3', 'tx_realurl_nocache', 'after:cache_timeout');
-}
-if (t3lib_div::compat_version('4.2')) {
-	// For 4.2 or new add fields to advanced page only
-	t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '1', 'after:nav_title');
-	t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '4,199,254', 'after:title');
-}
-else {
-	// Put it for standard page
-	t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '2', 'after:nav_title');
-	t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '1,5,4,199,254', 'after:title');
-}
+
+// Put it for standard page
+t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '2', 'after:nav_title');
+t3lib_extMgm::addToAllTCAtypes('pages', 'tx_realurl_pathsegment;;137;;,tx_realurl_exclude', '1,5,4,199,254', 'after:title');
 
 t3lib_extMgm::addLLrefForTCAdescr('pages','EXT:realurl/locallang_csh.xml');
 
