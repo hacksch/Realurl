@@ -101,7 +101,7 @@ class tx_realurl_crawler {
      */
     private function initCObj() {
         if ($GLOBALS ['TSFE']->cObj instanceof \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer === FALSE &&
-            $GLOBALS ['TSFE']->cObj instanceof tslib_cObj) {
+            $GLOBALS ['TSFE']->cObj instanceof tslib_cObj === FALSE) {
 
             $GLOBALS ['TSFE']->newCObj();
         }
