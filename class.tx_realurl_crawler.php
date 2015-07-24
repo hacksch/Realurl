@@ -45,14 +45,15 @@ class tx_realurl_crawler {
 		// Look for "crawler" extension activity:
 		// Requirements are that the crawler is loaded, a crawler session is running and tx_cachemgm_recache requested as processing instruction:
 		if (
-			t3lib_extMgm::isLoaded ( 'crawler' ) 
-			&& $pObj->applicationData ['tx_crawler'] ['running'] 
+			t3lib_extMgm::isLoaded ( 'crawler' )
+			&& $pObj->applicationData ['tx_crawler'] ['running']
 			&& (
 				in_array ( 'tx_cachemgm_recache', $pObj->applicationData ['tx_crawler'] ['parameters'] ['procInstructions'] )
-				|| 
+				||
 				in_array ( 'tx_realurl_rebuild', $pObj->applicationData ['tx_crawler'] ['parameters'] ['procInstructions'] )
 			)
 		) {
+		    $this->initCObj();
 
 			$lconf = array ();
 			$lconf ['parameter'] = $GLOBALS ['TSFE']->id;
@@ -67,7 +68,7 @@ class tx_realurl_crawler {
 			$pObj->applicationData ['realurl'] ['crawlermode'] = FALSE;
 		}
 	}
-	
+
 	/**
 	 * Hook wich disable the page cache if the current request is made by tx_crawler.
 	 *
@@ -90,10 +91,21 @@ class tx_realurl_crawler {
 		) {
 			$params['pObj']->applicationData['tx_crawler']['log'][] = 'Force page generation (realurl - rebuild)';
 
-				// force fresh page generation without using cache data 
+				// force fresh page generation without using cache data
 			$tsfe->all = '';
 		}
 	}
+
+    /**
+     * Initialize cObj
+     */
+    private function initCObj() {
+        if ($GLOBALS ['TSFE']->cObj instanceof \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer === FALSE &&
+            $GLOBALS ['TSFE']->cObj instanceof tslib_cObj) {
+
+            $GLOBALS ['TSFE']->newCObj();
+        }
+    }
 }
 
 ?>
